@@ -11,7 +11,7 @@ function Items() {
     // Intentional bug: setState called after component unmount if request is slow
     fetchItems().catch(console.error);
 
-    // Clean‑up to avoid memory leak (candidate should implement)
+    // Clean-up to avoid memory leak (candidate should implement)
     return () => {
       active = false;
     };

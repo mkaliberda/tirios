@@ -1,6 +1,6 @@
-# Take‑Home Assessment
+# Take-Home Assessment
 
-Welcome, candidate! This project contains **intentional issues** that mimic real‑world scenarios.
+Welcome, candidate! This project contains **intentional issues** that mimic real-world scenarios.
 Your task is to refactor, optimize, and fix these problems.
 
 ## Objectives
@@ -8,7 +8,7 @@ Your task is to refactor, optimize, and fix these problems.
 ### 🔧 Backend (Node.js)
 
 1. **Refactor blocking I/O**  
-   - `src/routes/items.js` uses `fs.readFileSync`. Replace with non‑blocking async operations.
+   - `src/routes/items.js` uses `fs.readFileSync`. Replace with non-blocking async operations.
 
 2. **Performance**  
    - `GET /api/stats` recalculates stats on every request. Cache results, watch file changes, or introduce a smarter strategy.
@@ -22,7 +22,7 @@ Your task is to refactor, optimize, and fix these problems.
    - `Items.js` leaks memory if the component unmounts before fetch completes. Fix it.
 
 2. **Pagination & Search**  
-   - Implement paginated list with server‑side search (`q` param). Contribute to both client and server.
+   - Implement paginated list with server-side search (`q` param). Contribute to both client and server.
 
 3. **Performance**  
    - The list can grow large. Integrate **virtualization** (e.g., `react-window`) to keep UI smooth.
@@ -33,9 +33,9 @@ Your task is to refactor, optimize, and fix these problems.
 ### 📦 What We Expect
 
 - Idiomatic, clean code with comments where necessary.
-- Solid error handling and edge‑case consideration.
+- Solid error handling and edge-case consideration.
 - Tests that pass via `npm test` in both frontend and backend.
-- A brief `SOLUTION.md` describing **your approach and trade‑offs**.
+- A brief `SOLUTION.md` describing **your approach and trade-offs**.
 
 ## Quick Start
 

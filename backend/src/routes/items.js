@@ -18,7 +18,7 @@ router.get('/', (req, res, next) => {
     let results = data;
 
     if (q) {
-      // Simple substring search (sub‑optimal)
+      // Simple substring search (sub-optimal)
       results = results.filter(item => item.name.toLowerCase().includes(q.toLowerCase()));
     }
 
