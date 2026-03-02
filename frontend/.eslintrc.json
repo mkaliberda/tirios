@@ -1,0 +1,29 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["airbnb"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "semi": ["error", "always"],
+    "arrow-body-style": "off",
+    "react/prop-types": "off",
+    "import/prefer-default-export": "off",
+    "react/function-component-definition": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ExportNamedDeclaration > FunctionDeclaration",
+        "message": "Use exported arrow constants: export const name = (...) => {}"
+      }
+    ]
+  }
+}
