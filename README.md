@@ -1,3 +1,10 @@
+# Docker
+
+
+To run docker in local dev mode run:
+
+`docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build`
+
 # Take‑Home Assessment
 
 Welcome, candidate! This project contains **intentional issues** that mimic real‑world scenarios.
