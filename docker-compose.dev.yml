@@ -1,0 +1,23 @@
+services:
+  backend:
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+    volumes:
+      - ./backend:/app/backend
+      - ./data:/app/data
+      - backend_node_modules:/app/backend/node_modules
+
+  frontend:
+    environment:
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: 'true'
+      WATCHPACK_POLLING: 'true'
+    volumes:
+      - ./frontend:/app/frontend
+      - frontend_node_modules:/app/frontend/node_modules
+
+volumes:
+  backend_node_modules:
+  frontend_node_modules:
