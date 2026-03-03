@@ -1,13 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { List } from 'react-window';
 import { Link } from 'react-router-dom';
 import { useItemsQuery } from '../../entities/items';
 import Btn from '../../shared/components/btn';
 import CardContent from '../../shared/components/card-content';
 
-const ITEMS_QUERY_PARAMS = { limit: 1000 };
+const ITEMS_QUERY_PARAMS = { limit: 10000 };
 const ROW_HEIGHT = 56;
 const LIST_HEIGHT = 560;
+const SEARCH_DEBOUNCE_MS = 300;
 
 const Row = ({ index, style, items }) => {
   const item = items[index];
@@ -40,22 +41,37 @@ const Row = ({ index, style, items }) => {
 };
 
 const ItemsPage = () => {
-  const { data: items = [], isPending, isError } = useItemsQuery(ITEMS_QUERY_PARAMS);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
-  const filteredItems = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, SEARCH_DEBOUNCE_MS);
 
-    if (!normalizedSearch) {
-      return items;
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [searchTerm]);
+
+  const queryParams = useMemo(() => {
+    if (!debouncedSearchTerm) {
+      return ITEMS_QUERY_PARAMS;
     }
 
-    return items.filter((item) => {
-      const name = item.name?.toLowerCase() || '';
-      const category = item.category?.toLowerCase() || '';
-      return name.includes(normalizedSearch) || category.includes(normalizedSearch);
-    });
-  }, [items, searchTerm]);
+    return {
+      ...ITEMS_QUERY_PARAMS,
+      q: debouncedSearchTerm,
+    };
+  }, [debouncedSearchTerm]);
+
+  const {
+    data: items = [],
+    isPending,
+    isError,
+  } = useItemsQuery(queryParams, {
+    placeholderData: (previousData) => previousData,
+  });
 
   if (isPending) {
     return <CardContent title="Items">Loading...</CardContent>;
@@ -91,18 +107,17 @@ const ItemsPage = () => {
           <div className="font-medium">Price</div>
           <div className="text-center font-medium">Action</div>
         </div>
-
-        {filteredItems.length === 0 ? (
+        {items.length === 0 ? (
           <div className="min-w-[560px] px-5 py-8 text-center text-slate-300/80">
-            No items match your search.
+            {debouncedSearchTerm ? 'No items match your search.' : 'No items available.'}
           </div>
         ) : (
           <List
             className="min-w-[260px]"
             rowComponent={Row}
-            rowCount={filteredItems.length}
+            rowCount={items.length}
             rowHeight={ROW_HEIGHT}
-            rowProps={{ items: filteredItems }}
+            rowProps={{ items }}
             style={{ height: LIST_HEIGHT, width: '100%' }}
           />
         )}
