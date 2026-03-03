@@ -9,15 +9,25 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest"
+    "test": "jest",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "node scripts/db/seed.js",
+    "db:prepare": "npm run prisma:push && npm run prisma:generate",
+    "db:setup": "npm run prisma:push && npm run prisma:generate && npm run prisma:seed",
+    "db:watch": "node scripts/db/watch-data.js"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "axios": "^1.9.0",
-    "cors": "^2.8.5",
     "config": "^3.3.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "morgan": "^1.10.0",
+    "pg": "^8.13.1",
+    "prisma": "^7.4.2",
     "request": "^2.88.2"
   },
   "devDependencies": {

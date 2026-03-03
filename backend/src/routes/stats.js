@@ -1,23 +1,28 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const prisma = require('../lib/prisma');
 const router = express.Router();
-const DATA_PATH = path.join(__dirname, '../../data/items.json');
 
 // GET /api/stats
-router.get('/', (req, res, next) => {
-  fs.readFile(DATA_PATH, (err, raw) => {
-    if (err) return next(err);
+router.get('/', async (req, res, next) => {
+  try {
+    const [total, aggregate] = await Promise.all([
+      prisma.item.count(),
+      prisma.item.aggregate({
+        _avg: {
+          price: true
+        }
+      })
+    ]);
 
-    const items = JSON.parse(raw);
-    // Intentional heavy CPU calculation
     const stats = {
-      total: items.length,
-      averagePrice: items.reduce((acc, cur) => acc + cur.price, 0) / items.length
+      total,
+      averagePrice: aggregate._avg.price ?? 0
     };
 
     res.json(stats);
-  });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;
