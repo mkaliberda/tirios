@@ -13,10 +13,6 @@ When services are up:
 
 Notes:
 
-- Frontend calls backend via `/api/*`.
-- `run-docker-dev.sh` saves logs to `artifacts/docker-dev.log` on stop and then runs `docker compose down -v`.
-
-## Backend tests
 
 - Unit tests (inside `backend/`):
   - `npm test`
