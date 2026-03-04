@@ -19,20 +19,29 @@ Because this project is an early version intended to handle a lot of data and ha
 # Backend
 
 - Added DB support to improve performance in search by providing indexes
-- Added redis as cache service to improve performance of /stats repeated queries
+- Added redis as cache service to improve performance of /stats and items repeated queries
+- Added cache for GET /api/items and GET /api/items/:id with 5 min ttl
 - added watcher service that follows data source changes and updates DB, invalidates cache, and warms cache
+- invalidation added for POST /api/items and for db watcher sync updates
+- warm cache strategy added for stats and all items after sync
 - added dto for better control
+- dto for request validation and response mapping (item/list/stats)
 - added unit and functional tests
    tests run with docker and provide output
 
 # Docker
 To support different setups for local development and functional environments with one command, see docker-compose files for details.
 
+- added redis service into docker compose for backend and db-sync
+- added helper script `./run-docker-dev.sh` for local development
+- added helper script `./run-docker-tests.sh` to run unit + functional tests in docker
+- tests artifacts are saved into `artifacts/`
+
 Frontend Bugs:
 1. **Memory Leak**
    - `Items.js` leaks memory if the component unmounts before fetch completes. Fix it.
  
-- not relevant anymore
+- done by moving data fetch flow to react-query based architecture, no direct leaking fetch lifecycle
 
 2. **Pagination & Search**
    - Implement paginated list with server‑side search (`q` param). Contribute to both client and server.
