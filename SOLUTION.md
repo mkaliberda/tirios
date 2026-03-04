@@ -19,6 +19,7 @@ Because this project is an early version intended to handle a lot of data and ha
 # Backend
 
 - Added DB support to improve performance in search by providing indexes
+    It can be normilize, into 2 tables
 - Added redis as cache service to improve performance of /stats and items repeated queries
 - Added cache for GET /api/items and GET /api/items/:id with 5 min ttl
 - added watcher service that follows data source changes and updates DB, invalidates cache, and warms cache
@@ -47,6 +48,7 @@ Frontend Bugs:
    - Implement paginated list with server‑side search (`q` param). Contribute to both client and server.
   
 - done: search by category and name is not case-sensitive
+- serach has debounce 300ms
 - added storing query and pagination params as QueryParams in browser
 - browser keeps data when user opens Item and goes back to Item List
 
