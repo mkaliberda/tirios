@@ -1,6 +1,20 @@
-To run docker in local dev mode run:
+## Run in Development
+
+Start local development stack:
 
 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build`
+
+When services are up:
+
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:3001`
+- Postgres: `localhost:5432`
+- Redis: `localhost:6379`
+
+Notes:
+
+- Frontend calls backend via `/api/*`.
+- `run-docker-dev.sh` saves logs to `artifacts/docker-dev.log` on stop and then runs `docker compose down -v`.
 
 ## Backend tests
 
