@@ -31,13 +31,11 @@ const Btn = ({
 }) => {
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
   const variantClass = VARIANT_CLASSES[variant] || VARIANT_CLASSES.secondary;
-  const disableClass = disabled ? 'disabled' : '';
   const classes = [
-    'inline-flex items-center justify-center rounded-lg transition',
+    'inline-flex cursor-pointer items-center justify-center rounded-lg transition disabled:cursor-not-allowed',
     sizeClass,
     variantClass,
     className,
-    disableClass,
   ]
     .join(' ')
     .trim();
