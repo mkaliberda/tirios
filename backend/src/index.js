@@ -5,6 +5,7 @@ const itemsRouter = require('./routes/items');
 const statsRouter = require('./routes/stats');
 const cors = require('cors');
 const prisma = require('./lib/prisma');
+const cache = require('./lib/cache');
 const { notFound } = require('./middleware/errorHandler');
 require('dotenv').config();
 
@@ -26,7 +27,7 @@ app.use('*', notFound);
 app.listen(port, () => console.log('Backend running on http://localhost:' + port));
 
 async function closePrisma() {
-  await prisma.$disconnect();
+  await Promise.allSettled([prisma.$disconnect(), cache.disconnect()]);
   process.exit(0);
 }
 

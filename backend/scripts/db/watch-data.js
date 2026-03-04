@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../../src/lib/prisma');
+const cache = require('../../src/lib/cache');
+const { invalidateItemsAndStatsCache, warmStatsAndAllItemsCache } = require('../../src/lib/items-cache');
 const { syncItemsFromFile, ITEMS_PATH } = require('./seed');
 
 const WATCH_DEBOUNCE_MS = 400;
@@ -25,6 +27,8 @@ async function runSync(trigger) {
     do {
       needsResync = false;
       await syncItemsFromFile();
+      await invalidateItemsAndStatsCache();
+      await warmStatsAndAllItemsCache();
       console.log(`[db-watch] synced data (${trigger})`);
     } while (needsResync);
   } catch (error) {
@@ -52,7 +56,7 @@ async function shutdown(signal) {
     directoryWatcher.close();
   }
   fs.unwatchFile(ITEMS_PATH);
-  await prisma.$disconnect();
+  await Promise.allSettled([prisma.$disconnect(), cache.disconnect()]);
   console.log(`[db-watch] stopped on ${signal}`);
   process.exit(0);
 }
@@ -75,6 +79,6 @@ async function main() {
 
 main().catch(async (error) => {
   console.error('[db-watch] failed to start', error);
-  await prisma.$disconnect();
+  await Promise.allSettled([prisma.$disconnect(), cache.disconnect()]);
   process.exit(1);
 });

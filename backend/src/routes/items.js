@@ -1,5 +1,8 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
+const cache = require('../lib/cache');
+const cacheKeys = require('../lib/cache-keys');
+const { invalidateItemsAndStatsCache } = require('../lib/items-cache');
 const router = express.Router();
 
 // GET /api/items
@@ -8,9 +11,19 @@ router.get('/', async (req, res, next) => {
     const { limit, page, q } = req.query;
     const parsedLimit = Number.parseInt(limit, 10);
     const parsedPage = Number.parseInt(page, 10);
+    const normalizedQuery = {};
+
     const take = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? undefined : parsedLimit;
     const currentPage = Number.isNaN(parsedPage) || parsedPage <= 0 ? 1 : parsedPage;
     const skip = take ? (currentPage - 1) * take : undefined;
+
+    if (take) {
+      normalizedQuery.limit = take;
+    }
+    if (currentPage > 1) {
+      normalizedQuery.page = currentPage;
+    }
+
     const where = q
       ? {
           OR: [
@@ -28,6 +41,16 @@ router.get('/', async (req, res, next) => {
         }
       : undefined;
 
+    if (q) {
+      normalizedQuery.q = String(q);
+    }
+
+    const cacheKey = cacheKeys.itemsList(normalizedQuery);
+    const cachedResponse = await cache.getJSON(cacheKey);
+    if (cachedResponse) {
+      return res.json(cachedResponse);
+    }
+
     const [total, items] = await Promise.all([
       prisma.item.count({ where }),
       prisma.item.findMany({
@@ -43,7 +66,7 @@ router.get('/', async (req, res, next) => {
     const effectiveLimit = take || Math.max(total, 1);
     const totalPages = Math.max(1, Math.ceil(total / effectiveLimit));
 
-    res.json({
+    const response = {
       items,
       pagination: {
         page: currentPage,
@@ -51,7 +74,10 @@ router.get('/', async (req, res, next) => {
         total,
         totalPages
       }
-    });
+    };
+
+    await cache.setJSON(cacheKey, response, cache.DEFAULT_TTL_SECONDS);
+    res.json(response);
   } catch (err) {
     next(err);
   }
@@ -67,6 +93,12 @@ router.get('/:id', async (req, res, next) => {
       throw err;
     }
 
+    const cacheKey = cacheKeys.itemDetail(id);
+    const cachedResponse = await cache.getJSON(cacheKey);
+    if (cachedResponse) {
+      return res.json(cachedResponse);
+    }
+
     const item = await prisma.item.findUnique({
       where: { id }
     });
@@ -76,6 +108,7 @@ router.get('/:id', async (req, res, next) => {
       err.status = 404;
       throw err;
     }
+    await cache.setJSON(cacheKey, item, cache.DEFAULT_TTL_SECONDS);
     res.json(item);
   } catch (err) {
     next(err);
@@ -94,6 +127,8 @@ router.post('/', async (req, res, next) => {
         price
       }
     });
+
+    await invalidateItemsAndStatsCache();
 
     res.status(201).json(item);
   } catch (err) {
