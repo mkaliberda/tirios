@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchItemById, fetchItems } from '../api/request';
+import { fetchItemById, fetchItems, fetchStats } from '../api/request';
 import { itemsKeys } from './keys';
 
 export const useItemsQuery = (params = {}, options = {}) => useQuery({
@@ -12,5 +12,11 @@ export const useItemQuery = (id, options = {}) => useQuery({
   queryKey: itemsKeys.detail(id),
   queryFn: () => fetchItemById(id),
   enabled: Boolean(id),
+  ...options,
+});
+
+export const useStatsQuery = (options = {}) => useQuery({
+  queryKey: itemsKeys.stats(),
+  queryFn: fetchStats,
   ...options,
 });

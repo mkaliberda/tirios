@@ -1,1 +1,1 @@
-export { useItemsQuery, useItemQuery } from './lib/api-hooks';
+export { useItemsQuery, useItemQuery, useStatsQuery } from './lib/api-hooks';

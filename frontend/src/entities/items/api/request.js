@@ -8,6 +8,10 @@ export const fetchItems = async (params = {}) => {
   return fetchJSON(url, { errorMessage: 'Failed to fetch items' });
 };
 
+export const fetchStats = async () => {
+  return fetchJSON(buildApiUrl('/api/stats/'), { errorMessage: 'Failed to fetch stats' });
+};
+
 export const fetchItemById = async (id) => {
   return fetchJSON(buildApiUrl(`/api/items/${id}`), {
     errorMessage: 'Failed to fetch item',

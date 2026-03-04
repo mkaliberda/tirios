@@ -9,6 +9,10 @@ export const buildItemsQueryString = (params = {}) => {
     searchParams.set('limit', String(params.limit));
   }
 
+  if (params.page) {
+    searchParams.set('page', String(params.page));
+  }
+
   return searchParams.toString();
 };
 

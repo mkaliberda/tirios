@@ -26,22 +26,25 @@ const Btn = ({
   to,
   type = 'button',
   variant = 'secondary',
+  disabled = false,
   ...props
 }) => {
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
   const variantClass = VARIANT_CLASSES[variant] || VARIANT_CLASSES.secondary;
+  const disableClass = disabled ? 'disabled' : '';
   const classes = [
     'inline-flex items-center justify-center rounded-lg transition',
     sizeClass,
     variantClass,
     className,
+    disableClass,
   ]
     .join(' ')
     .trim();
 
   if (to) {
     return (
-      <Link className={classes} to={to} {...props}>
+      <Link className={classes} disabled={disabled} to={to} {...props}>
         {children}
       </Link>
     );
@@ -49,7 +52,7 @@ const Btn = ({
 
   return (
     // eslint-disable-next-line react/button-has-type
-    <button className={classes} type={type} {...props}>
+    <button className={classes} type={type} {...props} disabled={disabled}>
       {children}
     </button>
   );

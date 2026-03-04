@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useItemQuery } from '../../entities/items';
 import ItemDetailsCard from './components/item-details-card';
@@ -8,14 +8,25 @@ import Btn from '../../shared/components/btn';
 const ItemDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fallbackParams = new URLSearchParams(location.search);
+  if (!fallbackParams.get('limit')) {
+    fallbackParams.set('limit', '50');
+  }
+  if (!fallbackParams.get('page')) {
+    fallbackParams.set('page', '1');
+  }
+  const fallbackQuery = fallbackParams.toString();
+  const queryBackTo = fallbackQuery ? `/?${fallbackQuery}` : '/';
+  const backTo = location.state?.from || queryBackTo;
 
   const { data: item, isPending, isError } = useItemQuery(id);
 
   useEffect(() => {
     if (isError) {
-      navigate('/');
+      navigate(backTo);
     }
-  }, [isError, navigate]);
+  }, [backTo, isError, navigate]);
 
   if (!item) {
     return null;
@@ -24,7 +35,7 @@ const ItemDetailPage = () => {
   return (
     <ItemDetailsCard
       actions={(
-        <Btn to="/" variant="primary">
+        <Btn to={backTo} variant="primary">
           Back to items
         </Btn>
       )}
@@ -33,7 +44,7 @@ const ItemDetailPage = () => {
           aria-label="Back to items"
           className="rounded-full"
           size="icon"
-          to="/"
+          to={backTo}
           variant="icon"
         >
           <svg
