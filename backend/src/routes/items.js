@@ -5,9 +5,12 @@ const router = express.Router();
 // GET /api/items
 router.get('/', async (req, res, next) => {
   try {
-    const { limit, q } = req.query;
+    const { limit, page, q } = req.query;
     const parsedLimit = Number.parseInt(limit, 10);
+    const parsedPage = Number.parseInt(page, 10);
     const take = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? undefined : parsedLimit;
+    const currentPage = Number.isNaN(parsedPage) || parsedPage <= 0 ? 1 : parsedPage;
+    const skip = take ? (currentPage - 1) * take : undefined;
     const where = q
       ? {
           OR: [
@@ -25,15 +28,30 @@ router.get('/', async (req, res, next) => {
         }
       : undefined;
 
-    const results = await prisma.item.findMany({
-      where,
-      take,
-      orderBy: {
-        id: 'asc'
+    const [total, items] = await Promise.all([
+      prisma.item.count({ where }),
+      prisma.item.findMany({
+        where,
+        take,
+        skip,
+        orderBy: {
+          id: 'asc'
+        }
+      })
+    ]);
+
+    const effectiveLimit = take || Math.max(total, 1);
+    const totalPages = Math.max(1, Math.ceil(total / effectiveLimit));
+
+    res.json({
+      items,
+      pagination: {
+        page: currentPage,
+        limit: effectiveLimit,
+        total,
+        totalPages
       }
     });
-
-    res.json(results);
   } catch (err) {
     next(err);
   }
