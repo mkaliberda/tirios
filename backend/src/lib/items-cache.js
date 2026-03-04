@@ -1,6 +1,7 @@
 const prisma = require('./prisma');
 const cache = require('./cache');
 const cacheKeys = require('./cache-keys');
+const { toItemsListDTO, toStatsDTO } = require('../dto/items-dto');
 
 const { DEFAULT_TTL_SECONDS } = cache;
 
@@ -19,19 +20,17 @@ const warmStatsAndAllItemsCache = async () => {
     })
   ]);
 
-  const statsPayload = {
+  const statsPayload = toStatsDTO({
     total,
     averagePrice: aggregate._avg.price ?? 0
-  };
-  const listPayload = {
+  });
+  const listPayload = toItemsListDTO({
     items,
-    pagination: {
-      page: 1,
-      limit: Math.max(total, 1),
-      total,
-      totalPages: 1
-    }
-  };
+    page: 1,
+    limit: Math.max(total, 1),
+    total,
+    totalPages: 1
+  });
 
   await Promise.all([
     cache.setJSON(cacheKeys.stats(), statsPayload, DEFAULT_TTL_SECONDS),

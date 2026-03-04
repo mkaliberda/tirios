@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const cache = require('../lib/cache');
 const cacheKeys = require('../lib/cache-keys');
+const { toStatsDTO } = require('../dto/items-dto');
 const router = express.Router();
 
 // GET /api/stats
@@ -22,10 +23,10 @@ router.get('/', async (req, res, next) => {
       })
     ]);
 
-    const stats = {
+    const stats = toStatsDTO({
       total,
       averagePrice: aggregate._avg.price ?? 0
-    };
+    });
 
     await cache.setJSON(cacheKey, stats, cache.DEFAULT_TTL_SECONDS);
     res.json(stats);

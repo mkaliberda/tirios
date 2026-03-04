@@ -3,6 +3,7 @@ const prisma = require('../lib/prisma');
 const cache = require('../lib/cache');
 const cacheKeys = require('../lib/cache-keys');
 const { invalidateItemsAndStatsCache } = require('../lib/items-cache');
+const { toCreateItemInputDTO, toItemDTO, toItemsListDTO } = require('../dto/items-dto');
 const router = express.Router();
 
 // GET /api/items
@@ -66,15 +67,13 @@ router.get('/', async (req, res, next) => {
     const effectiveLimit = take || Math.max(total, 1);
     const totalPages = Math.max(1, Math.ceil(total / effectiveLimit));
 
-    const response = {
+    const response = toItemsListDTO({
       items,
-      pagination: {
-        page: currentPage,
-        limit: effectiveLimit,
-        total,
-        totalPages
-      }
-    };
+      page: currentPage,
+      limit: effectiveLimit,
+      total,
+      totalPages
+    });
 
     await cache.setJSON(cacheKey, response, cache.DEFAULT_TTL_SECONDS);
     res.json(response);
@@ -108,8 +107,9 @@ router.get('/:id', async (req, res, next) => {
       err.status = 404;
       throw err;
     }
-    await cache.setJSON(cacheKey, item, cache.DEFAULT_TTL_SECONDS);
-    res.json(item);
+    const response = toItemDTO(item);
+    await cache.setJSON(cacheKey, response, cache.DEFAULT_TTL_SECONDS);
+    res.json(response);
   } catch (err) {
     next(err);
   }
@@ -118,19 +118,15 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/items
 router.post('/', async (req, res, next) => {
   try {
-    const { name, category, price } = req.body;
+    const data = toCreateItemInputDTO(req.body);
 
     const item = await prisma.item.create({
-      data: {
-        name,
-        category,
-        price
-      }
+      data
     });
 
     await invalidateItemsAndStatsCache();
 
-    res.status(201).json(item);
+    res.status(201).json(toItemDTO(item));
   } catch (err) {
     next(err);
   }
