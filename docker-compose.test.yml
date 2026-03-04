@@ -1,0 +1,37 @@
+services:
+  backend:
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:3001/api/items').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  unit-tests:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    working_dir: /app/backend
+    command: sh -c "mkdir -p /artifacts && npm run test:unit:artifacts"
+    environment:
+      NODE_ENV: test
+    volumes:
+      - ./artifacts:/artifacts
+
+  functional-tests:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    working_dir: /app/backend
+    command: sh -c "mkdir -p /artifacts && npm run test:functional:artifacts"
+    environment:
+      NODE_ENV: test
+      FUNCTIONAL_BASE_URL: http://backend:3001
+    depends_on:
+      backend:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./artifacts:/artifacts

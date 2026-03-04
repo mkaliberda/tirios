@@ -1,63 +1,132 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const prisma = require('../lib/prisma');
+const cache = require('../lib/cache');
+const cacheKeys = require('../lib/cache-keys');
+const { invalidateItemsAndStatsCache } = require('../lib/items-cache');
+const { toCreateItemInputDTO, toItemDTO, toItemsListDTO } = require('../dto/items-dto');
 const router = express.Router();
-const DATA_PATH = path.join(__dirname, '../../../data/items.json');
-
-// Utility to read data (intentionally sync to highlight blocking issue)
-function readData() {
-  const raw = fs.readFileSync(DATA_PATH);
-  return JSON.parse(raw);
-}
 
 // GET /api/items
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const data = readData();
-    const { limit, q } = req.query;
-    let results = data;
+    const { limit, page, q } = req.query;
+    const parsedLimit = Number.parseInt(limit, 10);
+    const parsedPage = Number.parseInt(page, 10);
+    const normalizedQuery = {};
+
+    const take = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? undefined : parsedLimit;
+    const currentPage = Number.isNaN(parsedPage) || parsedPage <= 0 ? 1 : parsedPage;
+    const skip = take ? (currentPage - 1) * take : undefined;
+
+    if (take) {
+      normalizedQuery.limit = take;
+    }
+    if (currentPage > 1) {
+      normalizedQuery.page = currentPage;
+    }
+
+    const where = q
+      ? {
+          OR: [
+            {
+              name: {
+                contains: String(q)
+              }
+            },
+            {
+              category: {
+                contains: String(q)
+              }
+            }
+          ]
+        }
+      : undefined;
 
     if (q) {
-      // Simple substring search (sub-optimal)
-      results = results.filter(item => item.name.toLowerCase().includes(q.toLowerCase()));
+      normalizedQuery.q = String(q);
     }
 
-    if (limit) {
-      results = results.slice(0, parseInt(limit));
+    const cacheKey = cacheKeys.itemsList(normalizedQuery);
+    const cachedResponse = await cache.getJSON(cacheKey);
+    if (cachedResponse) {
+      return res.json(cachedResponse);
     }
 
-    res.json(results);
+    const [total, items] = await Promise.all([
+      prisma.item.count({ where }),
+      prisma.item.findMany({
+        where,
+        take,
+        skip,
+        orderBy: {
+          id: 'asc'
+        }
+      })
+    ]);
+
+    const effectiveLimit = take || Math.max(total, 1);
+    const totalPages = Math.max(1, Math.ceil(total / effectiveLimit));
+
+    const response = toItemsListDTO({
+      items,
+      page: currentPage,
+      limit: effectiveLimit,
+      total,
+      totalPages
+    });
+
+    await cache.setJSON(cacheKey, response, cache.DEFAULT_TTL_SECONDS);
+    res.json(response);
   } catch (err) {
     next(err);
   }
 });
 
 // GET /api/items/:id
-router.get('/:id', (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   try {
-    const data = readData();
-    const item = data.find(i => i.id === parseInt(req.params.id));
+    const id = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      const err = new Error('Item not found');
+      err.status = 404;
+      throw err;
+    }
+
+    const cacheKey = cacheKeys.itemDetail(id);
+    const cachedResponse = await cache.getJSON(cacheKey);
+    if (cachedResponse) {
+      return res.json(cachedResponse);
+    }
+
+    const item = await prisma.item.findUnique({
+      where: { id }
+    });
+
     if (!item) {
       const err = new Error('Item not found');
       err.status = 404;
       throw err;
     }
-    res.json(item);
+    const response = toItemDTO(item);
+    await cache.setJSON(cacheKey, response, cache.DEFAULT_TTL_SECONDS);
+    res.json(response);
   } catch (err) {
     next(err);
   }
 });
 
 // POST /api/items
-router.post('/', (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
-    // TODO: Validate payload (intentional omission)
-    const item = req.body;
-    const data = readData();
-    item.id = Date.now();
-    data.push(item);
-    fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
-    res.status(201).json(item);
+    const data = toCreateItemInputDTO(req.body);
+
+    const item = await prisma.item.create({
+      data
+    });
+
+    await invalidateItemsAndStatsCache();
+
+    res.status(201).json(toItemDTO(item));
   } catch (err) {
     next(err);
   }

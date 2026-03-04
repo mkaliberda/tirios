@@ -2,16 +2,25 @@
   "name": "frontend",
   "version": "2.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.0",
-    "react-scripts": "5.0.1"
+    "react-window": "^2.2.7",
+    "zustand": "^5.0.11"
   },
   "scripts": {
-    "start": "cross-env PORT=3000 react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test"
+    "start": "vite --host 0.0.0.0 --port 3000",
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --port 3000",
+    "test": "vitest --passWithNoTests",
+    "lint": "eslint \"src/**/*.{js,jsx}\"",
+    "lint:fix": "eslint \"src/**/*.{js,jsx}\" --fix"
   },
   "browserslist": {
     "production": [
@@ -26,6 +35,20 @@
     ]
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "@tailwindcss/vite": "^4.2.1",
+    "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.27",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "jsdom": "^26.0.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "vite": "^7.1.7",
+    "vitest": "^3.2.4"
   }
 }

@@ -3,18 +3,37 @@
   "version": "2.0.0",
   "main": "src/index.js",
   "type": "commonjs",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest"
+    "test": "npm run test:unit",
+    "test:unit": "jest --testPathPattern=tests/unit",
+    "test:unit:artifacts": "jest --runInBand --testPathPattern=tests/unit --json --outputFile=/artifacts/backend-unit-jest.json",
+    "test:functional": "jest --runInBand --testPathPattern=tests/functional",
+    "test:functional:ci": "CI=true jest --runInBand --testPathPattern=tests/functional",
+    "test:functional:artifacts": "CI=true jest --runInBand --testPathPattern=tests/functional --json --outputFile=/artifacts/backend-functional-jest.json",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "node scripts/db/seed.js",
+    "db:prepare": "npm run prisma:push && npm run prisma:generate",
+    "db:setup": "npm run prisma:push && npm run prisma:generate && npm run prisma:seed",
+    "db:watch": "node scripts/db/watch-data.js"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "axios": "^1.9.0",
-    "cors": "^2.8.5",
     "config": "^3.3.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "morgan": "^1.10.0",
+    "pg": "^8.13.1",
+    "prisma": "^7.4.2",
+    "redis": "^4.7.1",
     "request": "^2.88.2"
   },
   "devDependencies": {

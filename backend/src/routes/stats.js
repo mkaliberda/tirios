@@ -1,23 +1,38 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const prisma = require('../lib/prisma');
+const cache = require('../lib/cache');
+const cacheKeys = require('../lib/cache-keys');
+const { toStatsDTO } = require('../dto/items-dto');
 const router = express.Router();
-const DATA_PATH = path.join(__dirname, '../../data/items.json');
 
 // GET /api/stats
-router.get('/', (req, res, next) => {
-  fs.readFile(DATA_PATH, (err, raw) => {
-    if (err) return next(err);
+router.get('/', async (req, res, next) => {
+  try {
+    const cacheKey = cacheKeys.stats();
+    const cachedResponse = await cache.getJSON(cacheKey);
+    if (cachedResponse) {
+      return res.json(cachedResponse);
+    }
 
-    const items = JSON.parse(raw);
-    // Intentional heavy CPU calculation
-    const stats = {
-      total: items.length,
-      averagePrice: items.reduce((acc, cur) => acc + cur.price, 0) / items.length
-    };
+    const [total, aggregate] = await Promise.all([
+      prisma.item.count(),
+      prisma.item.aggregate({
+        _avg: {
+          price: true
+        }
+      })
+    ]);
 
+    const stats = toStatsDTO({
+      total,
+      averagePrice: aggregate._avg.price ?? 0
+    });
+
+    await cache.setJSON(cacheKey, stats, cache.DEFAULT_TTL_SECONDS);
     res.json(stats);
-  });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

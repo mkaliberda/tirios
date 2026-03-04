@@ -1,58 +1,32 @@
-# Take-Home Assessment
+## Run in Development
 
-Welcome, candidate! This project contains **intentional issues** that mimic real-world scenarios.
-Your task is to refactor, optimize, and fix these problems.
+Start local development stack:
 
-## Objectives
+`docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build`
 
-### 🔧 Backend (Node.js)
+When services are up:
 
-1. **Refactor blocking I/O**  
-   - `src/routes/items.js` uses `fs.readFileSync`. Replace with non-blocking async operations.
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:3001`
+- Postgres: `localhost:5432`
+- Redis: `localhost:6379`
 
-2. **Performance**  
-   - `GET /api/stats` recalculates stats on every request. Cache results, watch file changes, or introduce a smarter strategy.
+Notes:
 
-3. **Testing**  
-   - Add **unit tests** (Jest) for items routes (happy path + error cases).
 
-### 💻 Frontend (React)
+- Unit tests (inside `backend/`):
+  - `npm test`
+  - or `npm run test:unit`
+  - artifact mode: `npm run test:unit:artifacts` (writes `artifacts/backend-unit-jest.json`)
+- Functional API tests with Docker Compose:
+  - `docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.test.yml up --build --abort-on-container-exit functional-tests`
+  - Artifacts are written to `artifacts/backend-functional-jest.json` and `artifacts/docker-functional.log`
 
-1. **Memory Leak**  
-   - `Items.js` leaks memory if the component unmounts before fetch completes. Fix it.
+### Docker test helper
 
-2. **Pagination & Search**  
-   - Implement paginated list with server-side search (`q` param). Contribute to both client and server.
-
-3. **Performance**  
-   - The list can grow large. Integrate **virtualization** (e.g., `react-window`) to keep UI smooth.
-
-4. **UI/UX Polish**  
-   - Feel free to enhance styling, accessibility, and add loading/skeleton states.
-
-### 📦 What We Expect
-
-- Idiomatic, clean code with comments where necessary.
-- Solid error handling and edge-case consideration.
-- Tests that pass via `npm test` in both frontend and backend.
-- A brief `SOLUTION.md` describing **your approach and trade-offs**.
-
-## Quick Start
-
-node version: 18.XX
-```bash
-nvm install 18
-nvm use 18
-
-# Terminal 1
-cd backend
-npm install
-npm start
-
-# Terminal 2
-cd frontend
-npm install
-npm start
-```
-
-> The frontend proxies `/api` requests to `http://localhost:3001`.
+- Run both backend suites (unit first, then functional):
+  - `./run-docker-tests.sh`
+- Artifacts produced by the helper:
+  - `artifacts/backend-unit-jest.json`
+  - `artifacts/backend-functional-jest.json`
+  - `artifacts/docker-functional.log`
